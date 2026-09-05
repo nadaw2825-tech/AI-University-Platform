@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.app.auth.audit import create_audit_log
 from backend.app.auth.dependencies import get_current_user_id
+from backend.app.auth.rbac import require_permission
 from backend.app.auth.schemas import (
     LoginRequest,
     RegisterRequest,
@@ -31,6 +33,7 @@ router = APIRouter(
 )
 def register(
     request: RegisterRequest,
+    http_request: Request,
     db: Session = Depends(get_db)
 ):
     existing_user = db.scalar(
@@ -55,6 +58,16 @@ def register(
     db.commit()
     db.refresh(user)
 
+    create_audit_log(
+        db=db,
+        user_id=user.id,
+        action="USER_REGISTERED",
+        resource_type="USER",
+        resource_id=user.id,
+        details="New user registered",
+        ip_address=http_request.client.host if http_request.client else None
+    )
+
     return UserResponse(
         id=str(user.id),
         full_name=user.full_name,
@@ -70,6 +83,7 @@ def register(
 )
 def login(
     request: LoginRequest,
+    http_request: Request,
     db: Session = Depends(get_db)
 ):
     user = db.scalar(
@@ -80,6 +94,16 @@ def login(
         request.password,
         user.password_hash
     ):
+        create_audit_log(
+            db=db,
+            user_id=user.id if user else None,
+            action="USER_LOGIN_FAILED",
+            resource_type="USER",
+            resource_id=user.id if user else None,
+            details="Failed login attempt",
+            ip_address=http_request.client.host if http_request.client else None
+        )
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -90,6 +114,16 @@ def login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
         )
+
+    create_audit_log(
+        db=db,
+        user_id=user.id,
+        action="USER_LOGIN",
+        resource_type="USER",
+        resource_id=user.id,
+        details="User logged in successfully",
+        ip_address=http_request.client.host if http_request.client else None
+    )
 
     access_token = create_access_token(str(user.id))
 
@@ -124,3 +158,23 @@ def get_me(
         is_active=user.is_active,
         is_verified=user.is_verified
     )
+
+
+@router.get(
+    "/admin-test",
+    dependencies=[Depends(require_permission("manage_users"))]
+)
+def admin_test():
+    return {
+        "message": "You have admin permission"
+    }
+
+
+@router.get(
+    "/student-test",
+    dependencies=[Depends(require_permission("view_courses"))]
+)
+def student_test():
+    return {
+        "message": "You have permission to view courses"
+    }

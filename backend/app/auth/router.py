@@ -4,6 +4,10 @@ from sqlalchemy.orm import Session
 
 from backend.app.auth.audit import create_audit_log
 from backend.app.auth.dependencies import get_current_user_id
+from backend.app.auth.email_verification import (
+    generate_verification_token,
+    verify_email_token,
+)
 from backend.app.auth.rbac import require_permission
 from backend.app.auth.schemas import (
     LoginRequest,
@@ -57,6 +61,11 @@ def register(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    generate_verification_token(
+        db=db,
+        user=user
+    )
 
     create_audit_log(
         db=db,
@@ -158,6 +167,44 @@ def get_me(
         is_active=user.is_active,
         is_verified=user.is_verified
     )
+
+
+@router.get(
+    "/verify-email"
+)
+def verify_email(
+    token: str,
+    http_request: Request,
+    db: Session = Depends(get_db)
+):
+    user = verify_email_token(
+        db=db,
+        raw_token=token
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid, expired, or already used verification token"
+        )
+
+    create_audit_log(
+        db=db,
+        user_id=user.id,
+        action="USER_EMAIL_VERIFIED",
+        resource_type="USER",
+        resource_id=user.id,
+        details="User email verified successfully",
+        ip_address=(
+            http_request.client.host
+            if http_request.client
+            else None
+        )
+    )
+
+    return {
+        "message": "Email verified successfully"
+    }
 
 
 @router.get(

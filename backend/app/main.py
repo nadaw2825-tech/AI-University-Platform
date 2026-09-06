@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from backend.app.auth.router import router as auth_router
+from backend.app.enrollment.router import router as enrollment_router
 
 
 app = FastAPI(
@@ -10,6 +11,7 @@ app = FastAPI(
 
 
 app.include_router(auth_router)
+app.include_router(enrollment_router)
 
 
 @app.get("/")

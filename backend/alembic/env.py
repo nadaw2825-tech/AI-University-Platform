@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from backend.app.database import Base
 from backend.app import models
+from backend.app.enrollment import models as enrollment_models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

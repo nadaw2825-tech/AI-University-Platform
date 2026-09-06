@@ -1,3 +1,4 @@
+
 from sqlalchemy import select
 
 from backend.app.database import SessionLocal
@@ -12,6 +13,7 @@ ROLE_PERMISSIONS = {
         "enroll_in_course",
         "view_wallet",
         "view_tuition",
+        "view_fines",
         "view_payments",
         "create_payment",
         "view_certificates",
@@ -40,6 +42,7 @@ ROLE_PERMISSIONS = {
         "review_exception_requests",
         "view_wallet",
         "view_tuition",
+        "view_fines",
         "view_payments",
         "view_certificates",
         "verify_transcript",
@@ -64,6 +67,8 @@ ROLE_PERMISSIONS = {
         "manage_wallet",
         "view_tuition",
         "manage_tuition",
+        "view_fines",
+        "manage_fines",
         "view_payments",
         "create_payment",
         "manage_payment_transactions",
@@ -131,3 +136,4 @@ def seed_role_permissions():
 
 if __name__ == "__main__":
     seed_role_permissions()
+

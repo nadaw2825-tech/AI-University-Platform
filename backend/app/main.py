@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from backend.app.auth.router import router as auth_router
 from backend.app.enrollment.router import router as enrollment_router
+from backend.app.finance.router import router as finance_router
 
 
 app = FastAPI(
@@ -12,7 +13,7 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(enrollment_router)
-
+app.include_router(finance_router)
 
 @app.get("/")
 def root():

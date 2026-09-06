@@ -1,3 +1,4 @@
+
 from sqlalchemy import select
 
 from backend.app.database import SessionLocal
@@ -78,6 +79,14 @@ PERMISSIONS = [
         "description": "Manage tuition records"
     },
     {
+        "name": "view_fines",
+        "description": "View student fines"
+    },
+    {
+        "name": "manage_fines",
+        "description": "Manage student fines"
+    },
+    {
         "name": "view_payments",
         "description": "View payment information"
     },
@@ -143,3 +152,4 @@ def seed_permissions():
 
 if __name__ == "__main__":
     seed_permissions()
+

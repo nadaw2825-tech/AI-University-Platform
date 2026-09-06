@@ -1,4 +1,3 @@
-
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -9,15 +8,19 @@ from backend.app.database import Base
 from backend.app import models
 from backend.app.enrollment import models as enrollment_models
 from backend.app.finance import models as finance_models
+from backend.app.verification import models as verification_models
+
 
 # this is the Alembic Config object, which provides
-# access to the values used in the .ini file.
+# access to the values used by the .ini file.
 config = context.config
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
 
 # Add your model's MetaData object here
 # for 'autogenerate' support.
